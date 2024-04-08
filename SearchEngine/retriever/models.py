@@ -1,0 +1,31 @@
+from typing import Iterable
+from django.db import models
+from .extractor import TextExtractor
+
+class Documents(models.Model):
+    title = models.CharField(max_length=255)
+    file = models.FileField(upload_to='documents/')
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+
+    def save(self, *args, **kwargs):
+        file = self.file
+        extractor = TextExtractor()
+        image_file_extensions = ['png', 'jpg', 'jpeg', 'gif', 'bmp']
+        name, extension = file.name.split('.')
+        if extension in image_file_extensions:
+            self.text = extractor.fromImageFileEasyOCR(file)
+        elif extension == 'pdf':
+            self.text = extractor.fromPDFFile(file)
+        elif extension == 'txt':
+            self.text = extractor.fromTextFile(file)
+        elif extension == 'html':
+            self.text = extractor.fromHTMLFile(file)
+            
+        self.title = self.file.name
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title

@@ -1,0 +1,12 @@
+env
+# Ignore __pycache__ folders
+__pycache__/
+
+# Ignore .pyc files
+*.pyc
+*.sqlite3
+scripts/
+gg/
+es/
+sample_files/
+SearchEngine/media/

@@ -1,0 +1,24 @@
+`html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Search Documents</title>
+  </head>
+  <body>
+    <h2>Search Documents</h2>
+    <form method="get">
+      {{ form.as_p }}
+      <button type="submit">Search</button>
+    </form>
+    <hr />
+    {% for document in results %}
+    <div>
+      <h3>{{ document.title }}</h3>
+      <p>{{ document.content|safe }}</p>
+      <!-- Implement highlighting here -->
+    </div>
+    {% empty %}
+    <p>No documents found.</p>
+    {% endfor %}
+  </body>
+</html>
