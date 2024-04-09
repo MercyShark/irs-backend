@@ -46,5 +46,22 @@ class Documents(models.Model):
     @property
     def get_extension(self):
         return self.file.name.split('.')[-1]
+
+    @staticmethod
+    def count_pdf(self):
+        return Documents.objects.filter(file__icontains='pdf').count()
+    
+    @staticmethod
+    def count_text(self):
+        return Documents.objects.filter(file__icontains='txt').count()
+    
+    @staticmethod
+    def count_html(self):
+        return Documents.objects.filter(file__icontains='html').count()
+    
+    @staticmethod
+    def count_image(self):
+        return Documents.objects.exclude(file__icontains='pdf').exclude(file__icontains='txt').exclude(file__icontains='html').count()
+
     def __str__(self):
         return self.title

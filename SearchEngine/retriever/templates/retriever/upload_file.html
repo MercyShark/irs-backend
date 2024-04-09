@@ -129,7 +129,9 @@
             >
               Close
             </button>
-            <form method="post" action="/delete_documents/"><button type="submit" class="btn btn-danger">Reset</button>
+            <form method="post" action="/delete_documents/">
+            <input type="hidden" name="path_redirect" value='/upload' />
+            <button type="submit" class="btn btn-danger">Reset</button>
           </div>
         </div>
       </div>

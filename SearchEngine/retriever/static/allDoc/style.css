@@ -1,0 +1,43 @@
+body {
+  background-color: #7494ec;
+}
+.search-container {
+  background-color: #f1f1f1;
+  border-radius: 10px;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  width: 60vw;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.4);
+}
+.item-border {
+  padding: 30px;
+  border: 1px dashed black;
+  border-radius: 20px;
+}
+.file-list {
+  list-style-type: none;
+  padding-left: 0;
+}
+.file-list-item {
+  color: #333333;
+  transition: background-color 0.3s;
+}
+.file-list-item:hover {
+  background-color: #dcdcdc;
+}
+.modal-document {
+  border: 2px #a8b3e3;
+  border-radius: 10px;
+  border-style: groove;
+}
+
+.text-large {
+  font-size: large;
+  font-weight: 600;
+}
+
+.listItemBorder {
+  border: 1px #a8b3e3;
+  border-style: ridge;
+  border-radius: 10px;
+}

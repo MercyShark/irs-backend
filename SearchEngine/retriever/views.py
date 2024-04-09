@@ -21,12 +21,7 @@ def upload_files(request):
     else:
         return render(request, 'retriever/upload_file.html')
     
-def ViewDocuments(request):
-    documents = Documents.objects.all()
-    context_data = { 
-        "documents": documents,
-    }
-    return render(request, 'retriever/all_documents.html',context=context_data )
+
 @csrf_exempt
 def searchView(request):
     if request.method == 'POST':
@@ -104,7 +99,21 @@ def searchView(request):
 @csrf_exempt
 def deleteDocumentView(request):
     if request.method == 'POST':
+        path = request.POST.get('path_redirect')
+        print(request.POST)
         Documents.objects.all().delete()
         es.delete_by_query(index="my_document_index", body={"query": {"match_all": {}}})
-        return HttpResponseRedirect('/upload/')
+        return HttpResponseRedirect(path)
     return HttpResponse("Invalid Request")
+
+def ViewDocuments(request):
+    documents = Documents.objects.all()
+
+    context_data = { 
+        "documents": documents,
+        "pdf_count": Documents.count_pdf(Documents),
+        "text_count": Documents.count_text(Documents),
+        "html_count": Documents.count_html(Documents),
+        "image_count": Documents.count_image(Documents)
+            }
+    return render(request, 'retriever/all_documents.html',context=context_data )
