@@ -3,4 +3,6 @@ from .models import Documents
 
 
 admin.site.register(Documents)
+
+
 # Register your models here.

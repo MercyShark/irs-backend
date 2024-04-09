@@ -26,7 +26,7 @@ class TextExtractor:
         reader = easyocr.Reader(['en'], verbose=False)
         result = reader.readtext(image_array)
         for res in result:
-            text += res[-2] + ''
+            text += res[-2] + ' '
         return text
     
     def fromUrl(self,url) -> str | None:
@@ -60,11 +60,3 @@ if __name__ == '__main__':
     print(extractor.fromImageFileEasyOCR(open('car.png','rb')))
     print(extractor.fromUrl('https://en.wikipedia.org/wiki/Animal'))
     print(extractor.fromHTMLFile(open('content.html')))
-# extractor = TextExtractor()
-# extractor.fromImageFileEasyOCR('car.png')
-# print(extractor.fromTextFile(open('./car.txt')))
-# print(extractor.fromPDFFile(open('car.pdf', 'rb')))
-# print(extractor.fromImageFile('car.png'))
-# print(extractor.fromImageFileEasyOCR(open('car.png','rb')))
-# print(extractor.fromUrl('https://en.wikipedia.org/wiki/Animal'))
-# print(extractor.fromHTMLFile(open('content.html')))

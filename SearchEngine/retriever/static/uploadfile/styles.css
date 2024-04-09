@@ -1,0 +1,29 @@
+body {
+    background-color: #7494EC;
+  }
+.file-upload-container {
+    background-color: #F1F1F1;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 50px auto;
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.4);
+}
+.file-drop-area {
+    border: 1px dashed #A8B3E3;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+}
+.file-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+.file-list-item {
+    color: #333333;
+    transition: background-color 0.3s;
+}
+.file-list-item:hover {
+    background-color: #dcdcdc
+    ; /* Background color on hover */
+  }

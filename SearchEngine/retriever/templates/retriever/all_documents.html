@@ -1,0 +1,32 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Search Documents</title>
+    <link rel="stylesheet" href="{% static 'all_documents.css' %}" />
+  </head>
+  <style>
+    .main {
+      display: flex;
+      align-items: center;
+      {% comment %} justify-content: space-between; {% endcomment %}
+    }
+  </style>
+  <body>
+    <h2>Uploaded Documents</h2>
+    <h3>Total Documents: {{ documents|length }}</h3>
+    {% for document in documents %}
+    <div class="main">
+      {% if document.get_extension == "pdf" %}
+      <img src="{% static 'pdf.png' %}" alt="My image" />
+      {% elif document.get_extension in "['png','jpg']" %}
+      <img src="{% static 'img.png' %}" alt="My image" />
+      {% endif %}
+      <h2>{{ forloop.counter }}. {{ document.title }}</h2>
+      <a href="{{ document.get_url }}" target="_blank">View</a>
+    </div>
+    {% endfor %}
+    <script></script>
+  </body>
+</html>

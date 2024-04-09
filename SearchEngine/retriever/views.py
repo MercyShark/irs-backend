@@ -1,99 +1,110 @@
 from django.shortcuts import render
-from elasticsearch import Elasticsearch
-from .extractor import TextExtractor
 from django.shortcuts import HttpResponse
-from .forms import DocumentForm
 from django.views.decorators.csrf import csrf_exempt
-from .models import Documents
-# Initialize Elasticsearch client
-
-# es = Elasticsearch('http://localhost:9200')
-# Create an index
-# print(es.ping()) # True if connected
-
-
-# indices = es.indices.get_alias()
-# for index in indices:
-#     print(index)
-index_name = "gg_index"
-# if not es.indices.exists(index=index_name):
-    # es.indices.create(index=index_name)
+from .models import Documents, es
+from .forms import SearchForm
+import html
+from django.utils.safestring import mark_safe
+from django.http import HttpResponseRedirect
 @csrf_exempt
 def upload_files(request):
     if request.method == 'POST':
             files = request.FILES.getlist('file') # memoryuploadfile object .. having name, content_type, size, charset, content, read, chunks, multiple_chunks
-            # file_contents = []
+            
+            print('hello world')
             for file in files:
                 Documents.objects.create(file=file)
-            # form = DocumentForm(request.POST, request.FILES)
-            # if form.is_valid():
-                # form.save()
-            return render(request, 'retriever/upload_success.html')
-            # print(form.errors)
-            # return HttpResponse("Form is not valid")
-
-            # file_contents = []
-            # extractor = TextExtractor()
-            # image_file_extensions = ['png', 'jpg', 'jpeg', 'gif', 'bmp']
-            # for i, file in enumerate(files, start=1):
-            #     name, extension = file.name.split('.')
-            #     if extension in image_file_extensions:
-            #         text = extractor.fromImageFileEasyOCR(file)
-            #         file_contents.append({
-            #             "file_name": file.name,
-            #             "title": name,
-            #             "type": "image",
-            #             "content": text
-            #         })
-            #     elif extension == 'pdf':
-            #         text = extractor.fromPDFFile(file)
-            #         file_contents.append({
-            #             "file_name": file.name,
-            #             "title": name,
-            #             "type": "pdf",
-            #             "content": text
-            #         })
-            #     elif extension == 'txt':
-            #         text = extractor.fromTextFile(file)
-            #         file_contents.append({
-            #             "file_name": file.name,
-            #             "title": name,
-            #             "type": "text",
-            #             "content": text
-            #         })
-            #     elif extension == 'html':
-            #         text = extractor.fromHTMLFile(file)
-            #         file_contents.append({
-            #             "file_name": file.name,
-            #             "title": name,
-            #             "type": "html",
-            #             "content": text
-            #         })
-            
-            # return render(request, 'retriever/upload_success.html', context={'file_contents': file_contents})
+            context_data = { 
+                "show": True
+            }
+            return render(request, 'retriever/upload_file.html',context=context_data)
     else:
         return render(request, 'retriever/upload_file.html')
+    
+def ViewDocuments(request):
+    documents = Documents.objects.all()
+    context_data = { 
+        "documents": documents,
+    }
+    return render(request, 'retriever/all_documents.html',context=context_data )
+@csrf_exempt
+def searchView(request):
+    if request.method == 'POST':
+        form = SearchForm(request.POST)
+        if form.is_valid():
+            query = form.cleaned_data['query']
+            search_body = {
+                "query": {
+                    "match_phrase": {
+                        "content": query
+                    },
+                },
+                "highlight": {
+                    "number_of_fragments": 0,
+                    "fields": {
+                        "content": {
+                            "pre_tags": ["<span style='color:red;background-color:yellow;'>"],
+                            "post_tags": ["</span>"]
+                        } 
+                    }
+                }
+            }
 
-def handle_uploaded_file(uploaded_file):
-    # Read the content of the file
-    file_content = uploaded_file.read().decode('utf-8')  # Assuming UTF-8 encoding
-    return file_content
-# def document_upload(request):
-#     if request.method == 'POST':
-#         form = DocumentForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('search')  # Redirect to a search page (to be implemented)
-#     else:
-#         form = DocumentForm()
-#     return render(request, 'retriever/document_form.html', {'form': form})
 
+            search_results = es.search(index="my_document_index", body=search_body)
 
+            pdf_found_count = 0
+            text_found_count = 0
+            html_found_count = 0
+            image_found_count = 0
 
-# def search(request):
-#     form = SearchForm()
-#     results = []
-#     query = request.GET.get('query')
-#     if query:
-#         results = Document.objects.filter(content__icontains=query)
-#     return render(request, 'retriever/search.html', {'form': form, 'results': results})
+            for hit in search_results["hits"]["hits"]:
+                extension = hit["_source"]["title"].split('/')[-1].split('.')[-1]
+                if extension == 'pdf':
+                    pdf_found_count += 1
+                elif extension == 'txt':
+                    text_found_count += 1
+                elif extension == 'html':
+                    html_found_count += 1
+                else:
+                    image_found_count += 1
+
+            results = {
+            "time_taken": search_results['took'],
+            "total_documents_found": search_results['hits']['total']['value'],
+            "total_documents": Documents.objects.all().count(),
+            "pdf_found": pdf_found_count,
+            "text_found": text_found_count,
+            "html_found": html_found_count,
+            "image_found": image_found_count,
+            "data": [
+                {
+                    "title": hit["_source"]["title"],
+                    "id": hit["_id"],
+                    "highlighted_content": mark_safe("".join(hit["highlight"]["content"]).replace("\n", "<br>")),
+                    "occurrences": "".join(hit["highlight"]["content"]).count("</span>"),
+                    "extension": hit["_source"]["title"].split('/')[-1].split('.')[-1],
+                } for hit in search_results["hits"]["hits"]
+            ]
+            }
+
+            print(results)
+            context_data = {
+                "form": form,
+                "results": results
+            }
+            # return HttpResponse(results['data'][0]["highlighted_content"])
+            return render(request, 'retriever/search.html', context=context_data)
+        else:
+            return HttpResponse("Invalid form")
+    if request.method == 'GET':
+        form = SearchForm()
+    return render(request, 'retriever/search.html', {'form': form})
+
+@csrf_exempt
+def deleteDocumentView(request):
+    if request.method == 'POST':
+        Documents.objects.all().delete()
+        es.delete_by_query(index="my_document_index", body={"query": {"match_all": {}}})
+        return HttpResponseRedirect('/upload/')
+    return HttpResponse("Invalid Request")
