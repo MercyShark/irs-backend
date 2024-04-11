@@ -44,6 +44,8 @@
               <span class="badge bg-info">{{ results.image_found }} img found</span>
               <span class="badge bg-info">{{ results.text_found }} text found</span>
               <span class="badge bg-info">{{ results.html_found }} html found</span>
+              <span class="badge bg-info">{{ results.url_found }} link found</span>
+
               {% endif %}
               <ul class="file-list mt-3" id="fileList">
                 {% for document in results.data %}
@@ -102,7 +104,7 @@
       aria-labelledby="exampleModalLabel"
       aria-hidden="true"
     >
-      <div class="modal-dialog modal-lg">
+      <div class="modal-dialog modal-xl">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>

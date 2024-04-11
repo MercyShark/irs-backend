@@ -8,40 +8,48 @@ es = Elasticsearch('http://localhost:9200')
 
 class Documents(models.Model):
     title = models.CharField(max_length=255)
-    file = models.FileField(upload_to='documents/')
+    file = models.FileField(upload_to='documents/', null=True, blank=True)
+    url = models.URLField(null=True, blank=True)      
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-
-
-
     def save(self, *args, **kwargs):
-        file = self.file
         extractor = TextExtractor()
-        image_file_extensions = ['png', 'jpg', 'jpeg', 'gif', 'bmp']
-        name, extension = file.name.split('.')
-        if extension in image_file_extensions:
-            self.text = extractor.fromImageFileEasyOCR(file)
-        elif extension == 'pdf':
-            self.text = extractor.fromPDFFile(file)
-        elif extension == 'txt':
-            self.text = extractor.fromTextFile(file)
-        elif extension == 'html':
-            self.text = extractor.fromHTMLFile(file)
-            
-        self.title = self.file.name
+        if self.url:
+            print("executed")
+            self.text = extractor.fromUrl(self.url)
+            self.title = self.url
+        else:
+            file = self.file
+            image_file_extensions = ['png', 'jpg', 'jpeg', 'gif', 'bmp']
+            name, extension = file.name.split('.')
+            if extension in image_file_extensions:
+                self.text = extractor.fromImageFileEasyOCR(file)
+            elif extension == 'pdf':
+                self.text = extractor.fromPDFFile(file)
+            elif extension == 'txt':
+                self.text = extractor.fromTextFile(file)
+            elif extension == 'html':
+                self.text = extractor.fromHTMLFile(file)
+                
+            self.title = self.file.name
         
         super().save(*args, **kwargs)
-        # print(instance)
-        
         if(es.ping()):
-            doc = DocumentIndex(title=self.file.name, content=self.text, id=self.id)
+            if self.url:
+                doc = DocumentIndex(title=self.url, content=self.text, id=self.id)
+            else:
+                doc = DocumentIndex(title=self.file.name, content=self.text, id=self.id)
+
             doc = doc.save(using=es)
 
     @property
     def get_url(self):
-        return "http://localhost:8000" + self.file.url
+        if self.url:
+            return self.url
+        else:
+            return "http://localhost:8000" + self.file.url
 
     @property
     def get_extension(self):
@@ -61,7 +69,14 @@ class Documents(models.Model):
     
     @staticmethod
     def count_image(self):
-        return Documents.objects.exclude(file__icontains='pdf').exclude(file__icontains='txt').exclude(file__icontains='html').count()
+        instance =  Documents.objects.exclude(file__icontains='pdf').exclude(file__icontains='txt').exclude(file__icontains='html')
+        instance = instance.exclude(url__isnull=False).count()
+        # print(instance)
+        return instance
+    
+    @staticmethod
+    def count_url(self):
+        return Documents.objects.filter(url__isnull=False).count()
 
     def __str__(self):
         return self.title

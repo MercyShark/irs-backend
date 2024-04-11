@@ -3,17 +3,18 @@ from django.shortcuts import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Documents, es
 from .forms import SearchForm
-import html
 from django.utils.safestring import mark_safe
 from django.http import HttpResponseRedirect
+
 @csrf_exempt
 def upload_files(request):
     if request.method == 'POST':
             files = request.FILES.getlist('file') # memoryuploadfile object .. having name, content_type, size, charset, content, read, chunks, multiple_chunks
-            
-            print('hello world')
+            urls = request.POST.getlist('links')
             for file in files:
                 Documents.objects.create(file=file)
+            for url in urls:
+                Documents.objects.create(url=url)
             context_data = { 
                 "show": True
             }
@@ -52,7 +53,7 @@ def searchView(request):
             text_found_count = 0
             html_found_count = 0
             image_found_count = 0
-
+            url_found_count = 0
             for hit in search_results["hits"]["hits"]:
                 extension = hit["_source"]["title"].split('/')[-1].split('.')[-1]
                 if extension == 'pdf':
@@ -61,8 +62,11 @@ def searchView(request):
                     text_found_count += 1
                 elif extension == 'html':
                     html_found_count += 1
-                else:
+                elif extension in ['png', 'jpg', 'jpeg', 'gif', 'bmp']:
                     image_found_count += 1
+                else:
+                    url_found_count += 1
+
 
             results = {
             "time_taken": search_results['took'],
@@ -72,11 +76,12 @@ def searchView(request):
             "text_found": text_found_count,
             "html_found": html_found_count,
             "image_found": image_found_count,
+            "url_found": url_found_count,
             "data": [
                 {
                     "title": hit["_source"]["title"],
                     "id": hit["_id"],
-                    "highlighted_content": mark_safe("".join(hit["highlight"]["content"]).replace("\n", "<br>")),
+                    "highlighted_content": mark_safe("".join(hit["highlight"]["content"]).replace("\n", "<br>").replace('"','')),
                     "occurrences": "".join(hit["highlight"]["content"]).count("</span>"),
                     "extension": hit["_source"]["title"].split('/')[-1].split('.')[-1],
                 } for hit in search_results["hits"]["hits"]
@@ -88,7 +93,6 @@ def searchView(request):
                 "form": form,
                 "results": results
             }
-            # return HttpResponse(results['data'][0]["highlighted_content"])
             return render(request, 'retriever/search.html', context=context_data)
         else:
             return HttpResponse("Invalid form")
@@ -114,6 +118,7 @@ def ViewDocuments(request):
         "pdf_count": Documents.count_pdf(Documents),
         "text_count": Documents.count_text(Documents),
         "html_count": Documents.count_html(Documents),
-        "image_count": Documents.count_image(Documents)
+        "image_count": Documents.count_image(Documents),
+        "url_count": Documents.count_url(Documents),
             }
     return render(request, 'retriever/all_documents.html',context=context_data )
