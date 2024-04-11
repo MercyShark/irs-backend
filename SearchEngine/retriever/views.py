@@ -11,13 +11,15 @@ def upload_files(request):
     if request.method == 'POST':
             files = request.FILES.getlist('file') # memoryuploadfile object .. having name, content_type, size, charset, content, read, chunks, multiple_chunks
             urls = request.POST.getlist('links')
-            for file in files:
-                Documents.objects.create(file=file)
-            for url in urls:
-                Documents.objects.create(url=url)
+            # for file in files:
+            #     Documents.objects.create(file=file)
+            # for url in urls:
+            #     Documents.objects.create(url=url)
             context_data = { 
                 "show": True
             }
+            print(files)
+            print(urls)
             return render(request, 'retriever/upload_file.html',context=context_data)
     else:
         return render(request, 'retriever/upload_file.html')

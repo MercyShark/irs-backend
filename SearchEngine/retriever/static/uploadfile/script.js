@@ -1,6 +1,12 @@
 const fileDropArea = document.getElementById("fileDropArea");
 const fileList = document.getElementById("fileList");
 const fileInput = document.getElementById("fileInput");
+const urlInput = document.getElementById("urlInput");
+const siteList = document.getElementById("siteList");
+const form = document.getElementById("form");
+const hiddenInput = document.getElementById("hiddenInput");
+
+let urls = [];
 
 fileDropArea.addEventListener("dragover", (event) => {
   event.preventDefault();
@@ -75,11 +81,72 @@ function clearClient() {
 }
 
 function getFileTypeIcon(fileType) {
-  if (fileType.startsWith("image/")) {
+  if(fileType.endsWith("html")){
+    return `<img src="../static/icons/html.png" alt="">`;
+  }
+  else if(fileType.endsWith("pdf")){
+    return `<img src="../static/icons/pdf.png" alt="">`;
+  }
+  else if (fileType.startsWith("image/")) {
     return `<img src="../static/icons/image.png" alt="">`;
   } else if (fileType.startsWith("text/")) {
     return `<img class="img-fluid" src="../static/icons/text.png" alt="">`;
   } else {
     return `<img src="../static/icons/pdf.png" alt="">`;
   }
+}
+
+
+function addUrl() {
+  let url = urlInput.value;
+  urlInput.value = "";
+  if (validateURL(url)) {
+  urls.push(url);
+  }
+  showUrl();
+  if(urls.length > 0) {
+    document.getElementById("upload_button").disabled = false;
+  }
+}
+
+function showUrl() {
+  let child = siteList.lastElementChild;
+  while (child) {
+    siteList.removeChild(child);
+    child = siteList.lastElementChild;
+  }
+  let count=0;
+  for (let url of urls) {
+    const listItem = document.createElement("li");
+    listItem.className = "my-2 p-2";
+    listItem.id = count;
+    const sitelist = document.createElement("div");
+    sitelist.className = "d-flex justify-content-between";
+    sitelist.innerHTML = `<span>${url}</span><button type="button" class="btn-close" id=${count} aria-label="Close" onclick="clearUrl(this.id)"></button>`;
+    listItem.appendChild(sitelist);
+
+    siteList.appendChild(listItem);
+    count++;
+  }
+}
+
+function clearUrl(id){
+  var elem = document.getElementById(id);
+  console.log(id);
+  elem.parentNode.removeChild(elem);
+  urls.splice(id,1);
+  if(urls.length == 0) {
+    document.getElementById("upload_button").disabled = true;
+  }
+}
+
+function validateURL(url) {
+  const regex = /^(http|https):\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}(\/\S*)?$/;
+  return regex.test(url);
+}
+
+function upload(){
+  let links = urls.toString();
+  hiddenInput.value = links;
+  form.submit();
 }

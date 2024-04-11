@@ -9,7 +9,7 @@ body {
     box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.4);
 }
 .file-drop-area {
-    border: 1px dashed #A8B3E3;
+    border: 1px groove black;
     border-radius: 20px;
     padding: 20px;
     text-align: center;
@@ -27,3 +27,18 @@ body {
     background-color: #dcdcdc
     ; /* Background color on hover */
   }
+
+.search-bar {
+    border: 1px #a8b3e3;
+    border-radius: 5px;
+    padding: 10px;
+    transition: background-color 0.3s;
+}
+.search-bar:hover {
+    background-color: #dcdcdc; /* Darker gray on hover */
+}
+
+.site-box {
+    border: 1px dashed #a8b3e3;
+    border-radius: 20px;
+}

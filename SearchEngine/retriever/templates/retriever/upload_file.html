@@ -18,7 +18,7 @@
       <div class="row">
         <div class="col-md-6 offset-md-3">
           <div class="file-upload-container">
-            <form method="post" enctype="multipart/form-data" required>
+            <form method="post" enctype="multipart/form-data" id="form" required>
               {% csrf_token %}
               <div class="file-drop-area" id="fileDropArea">
                 <h3>Drag & Drop Files Here</h3>
@@ -44,16 +44,34 @@
                 >
                   Browse Files
                 </button>
-                <div class="d-flex flex-row justify-content-between">
-                  <input class="form-control" id="exampleFormControlInput1" placeholder="Enter url" name="urls">
-                  <button class="btn btn-primary" type="button">Add Url </button>
+                <div class="site-box d-flex justify-content-between flex-column p-4 mt-3">
+                  <div class=" d-flex justify-content-between">
+                    <input
+                      type="text"
+                      id="urlInput"
+                      class="form-control search-bar"
+                      placeholder="Enter site url here :"
+                    />
+                    <button
+                      type="button"
+                      onclick="addUrl()"
+                      class="w-25 btn btn-primary btn-block py-2 ms-3"
+                    >
+                      Add url
+                    </button>
+                    <input type="hidden" id="hiddenInput" value="" name="links">
+                  </div>
+                  <div>
+                    <ol class=" text-start site-list mt-3" id="siteList"></ol>
+                  </div>
                 </div>
               </div>
               <div class="d-grid mx-auto col-8 text-center mt-3">
                 <button
-                  type="submit"
+                  type="button"
                   class="btn btn-block btn-primary"
                   id="upload_button"
+                  onclick="upload()"
                   disabled
                 >
                   Upload
