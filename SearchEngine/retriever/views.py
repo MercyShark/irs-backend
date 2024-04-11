@@ -5,21 +5,22 @@ from .models import Documents, es
 from .forms import SearchForm
 from django.utils.safestring import mark_safe
 from django.http import HttpResponseRedirect
+from django.conf import settings
 
 @csrf_exempt
 def upload_files(request):
     if request.method == 'POST':
             files = request.FILES.getlist('file') # memoryuploadfile object .. having name, content_type, size, charset, content, read, chunks, multiple_chunks
             urls = request.POST.getlist('links')
-            # for file in files:
-            #     Documents.objects.create(file=file)
-            # for url in urls:
-            #     Documents.objects.create(url=url)
+            urls = "".join(urls).split(',')
+            for file in files:
+                Documents(file=file).save()
+            if urls[0] == '': urls = []
+            for url in urls:
+                Documents(url=url).save()
             context_data = { 
                 "show": True
             }
-            print(files)
-            print(urls)
             return render(request, 'retriever/upload_file.html',context=context_data)
     else:
         return render(request, 'retriever/upload_file.html')
