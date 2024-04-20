@@ -21,7 +21,7 @@
           <div class="search-container mx-auto my-5 p-4">
             <div class="header text-center">
               <h2>Information Retriever System</h2>
-              {% comment %} <p>Searching in {{ results.total_documents}} files.</p> {% endcomment %}
+              <p>Searching in {{ results.total_documents}} files and links.</p>
             </div>
             <div class="search-box p-4">
               <form method="post">
@@ -36,15 +36,12 @@
             </div>
             {% if results %}
             <div class="mt-4">
-              {% comment %} <h5>Found {{ results.total_documents_found }} Documents</h5>
-              <span class="badge bg-success"
-                >{{ results.time_taken}} milliseconds</span
-              > {% endcomment %}
-              {% comment %} <span class="badge bg-info">{{ results.pdf_found }} pdf found</span>
+               <h5>Found {{ results.total_documents_found }} Documents</h5>
+              <span class="badge bg-info">{{ results.pdf_found }} pdf found</span>
               <span class="badge bg-info">{{ results.image_found }} img found</span>
               <span class="badge bg-info">{{ results.text_found }} text found</span>
               <span class="badge bg-info">{{ results.html_found }} html found</span>
-              <span class="badge bg-info">{{ results.url_found }} link found</span> {% endcomment %}
+              <span class="badge bg-info">{{ results.url_found }} link found</span>
 
               {% endif %}
               <ul class="file-list mt-3" id="fileList">

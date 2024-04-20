@@ -21,6 +21,12 @@ def tokenize(text):
 
 
 
+def highlight_query_in_text(input_string, word, tag_name="span", **kwargs):
+    word = word.lower()
+    word = re.sub(r'[^a-zA-Z\s]', '', word)
+    pattern = re.compile(r'\b' + re.escape(word) + r'\b', re.IGNORECASE)
+    highlighted_string = pattern.sub("<{} {}>{}</{}>".format(tag_name, ' '.join([f'{key}="{value}"' for key, value in kwargs.items()]), word, tag_name), input_string)
+    return highlighted_string
 
 def get_positions(docs, query):
     data = []
@@ -47,14 +53,13 @@ def get_positions(docs, query):
                     start_positions.append(start_pos)
             
             if start_positions:
-
                 doc = {
                     "file_name": document['filename'],
                     "start_positions": start_positions,
                     "type": document['type'],
                     "total_occurances": len(start_positions),
-                    "id" : document['id']
-                    # "org_document": Documents.objects.get(id = document['id'])
+                    "id" : document['id'],
+                    "extension": document['filename'].split('/')[-1].split('.')[-1] if document['type'] == 'file' else None,
                 }
                 data.append(doc)
                 print("Match found in document:", document['filename'])
@@ -64,3 +69,27 @@ def get_positions(docs, query):
         else:
             print("No match found in document:", document['filename'])
     return data
+
+def stringMod(sentence,position,length):
+    li = list(sentence.split())
+    flag =False
+    correctingFactor = 0
+    temp=-1
+    print(position)
+    for element in position:
+        print(correctingFactor)
+        element +=correctingFactor
+        if(element<=temp):
+            element -=1
+            flag =True
+        li.insert(element,"<span style='color:red;background-color:yellow;'>")
+        print(element)
+        after = element+length+1
+        if(flag):
+            after +=1
+        temp=after
+        li.insert(after,"</span>")
+        correctingFactor += 2
+        print(after)
+    return ' '.join(li)
+
