@@ -21,7 +21,7 @@
           <div class="search-container mx-auto my-5 p-4">
             <div class="header text-center">
               <h2>Information Retriever System</h2>
-              <p>Searching in {{ results.total_documents}} files.</p>
+              {% comment %} <p>Searching in {{ results.total_documents}} files.</p> {% endcomment %}
             </div>
             <div class="search-box p-4">
               <form method="post">
@@ -36,15 +36,15 @@
             </div>
             {% if results %}
             <div class="mt-4">
-              <h5>Found {{ results.total_documents_found }} Documents</h5>
+              {% comment %} <h5>Found {{ results.total_documents_found }} Documents</h5>
               <span class="badge bg-success"
                 >{{ results.time_taken}} milliseconds</span
-              >
-              <span class="badge bg-info">{{ results.pdf_found }} pdf found</span>
+              > {% endcomment %}
+              {% comment %} <span class="badge bg-info">{{ results.pdf_found }} pdf found</span>
               <span class="badge bg-info">{{ results.image_found }} img found</span>
               <span class="badge bg-info">{{ results.text_found }} text found</span>
               <span class="badge bg-info">{{ results.html_found }} html found</span>
-              <span class="badge bg-info">{{ results.url_found }} link found</span>
+              <span class="badge bg-info">{{ results.url_found }} link found</span> {% endcomment %}
 
               {% endif %}
               <ul class="file-list mt-3" id="fileList">
@@ -70,9 +70,9 @@
                       {% endif %}
 
                       <div class="pt-1 ps-2">
-                        <span class="text-large">{{ document.title }}</span
+                        <span class="text-large">{{ document.org_document.title }}</span
                         ><br /><span class="badge bg-secondary"
-                          >{{ document.occurrences}} occurrences</span
+                          >{{ document.total_occurances}} occurrences</span
                         >
                       </div>
                     </div>

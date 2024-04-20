@@ -1,10 +1,15 @@
-from typing import Iterable
 from django.db import models
 from .extractor import TextExtractor
 from elasticsearch import Elasticsearch
 from .search import DocumentIndex
+from .utils import tokenize
+import pymongo
 
 es = Elasticsearch('http://localhost:9200')
+client = pymongo.MongoClient("mongodb://localhost:27017/")
+db = client['test2']
+collection = db['my_model']
+
 
 class Documents(models.Model):
     title = models.CharField(max_length=255)
@@ -36,13 +41,31 @@ class Documents(models.Model):
             self.title = self.file.name
         
         super().save(*args, **kwargs)
+
         if(es.ping()):
+            document = {}
+            instance = tokenize(self.text)
             if self.url:
                 doc = DocumentIndex(title=self.url, content=self.text, id=self.id)
+                document = { 
+                    "filename": self.url,
+                    "type" : "url",
+                    "terms": instance['terms'],
+                    "id": self.id,
+                }
             else:
                 doc = DocumentIndex(title=self.file.name, content=self.text, id=self.id)
+                document = {
+                    "filename": self.file.name,
+                    "type" : "file",
+                    "terms": instance['terms'],
+                    "id": self.id,
+                }
 
+            collection.insert_one(document)
             doc = doc.save(using=es)
+
+
 
     @property
     def get_url(self):
@@ -80,3 +103,6 @@ class Documents(models.Model):
 
     def __str__(self):
         return self.title
+    
+def find_by_id(id):
+    return Documents.objects.get(id=id)
