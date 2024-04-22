@@ -19,8 +19,6 @@ def tokenize(text):
         }
     return obj
 
-
-
 def highlight_query_in_text(input_string, word, tag_name="span", **kwargs):
     word = word.lower()
     word = re.sub(r'[^a-zA-Z\s]', '', word)
@@ -36,8 +34,7 @@ def get_positions(docs, query):
         # print("Document terms:", document_terms)
         
         if all(term in document_terms for term in query_terms):
-            # print("Match found in document:", document['filename'])
-            
+            # print("Match found in document:", document['filename']) 
             first_query_term = query_terms[0]
             first_term_positions = [term['positions'] for term in document['terms'] if term['term'] == first_query_term][0]
             

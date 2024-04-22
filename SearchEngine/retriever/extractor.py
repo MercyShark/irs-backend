@@ -56,19 +56,7 @@ class TextExtractor:
             return text
         finally:
             driver.quit()
-
-        # response = requests.get(url)
-
-        # if response.status_code == 200:
-        #     soup = BeautifulSoup(response.content, 'html.parser')
-        #     text = soup.get_text()
-        #     text = re.sub(r'\s+', ' ', text)  # Replace multiple spaces with a single space
-        #     text = text.strip() # Remove leading and trailing whitespaces
-        #     return text
-        # else:
-        #     print("Failed to fetch the web page:", response.status_code)
-        #     return None
-
+            
     def fromWordFile(self, file) -> str:
 
         doc = Document(file)
@@ -76,7 +64,7 @@ class TextExtractor:
         for para in doc.paragraphs:
             full_text.append(para.text)
         return "\n".join(full_text)
-
+    
     def fromHTMLFile(self, file) -> str:
         soup = BeautifulSoup(file, "html.parser")
         text = soup.get_text()

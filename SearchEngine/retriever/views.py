@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.shortcuts import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Documents, es
+from .models import Documents
 from .forms import SearchForm
 from django.utils.safestring import mark_safe
 from django.http import HttpResponseRedirect
@@ -93,7 +93,7 @@ def deleteDocumentView(request):
         print(request.POST)
         Documents.objects.all().delete()
         collection.delete_many({})
-        es.delete_by_query(index="my_document_index", body={"query": {"match_all": {}}})
+        # es.delete_by_query(index="my_document_index", body={"query": {"match_all": {}}})
         return HttpResponseRedirect(path)
     return HttpResponse("Invalid Request")
 

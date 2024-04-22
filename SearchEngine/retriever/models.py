@@ -1,11 +1,11 @@
 from django.db import models
 from .extractor import TextExtractor
-from elasticsearch import Elasticsearch
-from .search import DocumentIndex
+# from elasticsearch import Elasticsearch
+# from .search import DocumentIndex
 from .utils import tokenize
 import pymongo
 
-es = Elasticsearch('http://localhost:9200')
+# es = Elasticsearch('http://localhost:9200')
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client['test2']
 collection = db['my_model']
@@ -42,29 +42,44 @@ class Documents(models.Model):
         
         super().save(*args, **kwargs)
 
-        if(es.ping()):
-            document = {}
-            instance = tokenize(self.text)
-            if self.url:
-                doc = DocumentIndex(title=self.url, content=self.text, id=self.id)
-                document = { 
-                    "filename": self.url,
-                    "type" : "url",
-                    "terms": instance['terms'],
-                    "id": self.id,
-                }
-            else:
-                doc = DocumentIndex(title=self.file.name, content=self.text, id=self.id)
-                document = {
-                    "filename": self.file.name,
-                    "type" : "file",
-                    "terms": instance['terms'],
-                    "id": self.id,
-                }
+        # if(es.ping()):
+        #     document = {}
+        #     instance = tokenize(self.text)
+        #     if self.url:
+        #         doc = DocumentIndex(title=self.url, content=self.text, id=self.id)
+        #         document = { 
+        #             "filename": self.url,
+        #             "type" : "url",
+        #             "terms": instance['terms'],
+        #             "id": self.id,
+        #         }
+        #     else:
+        #         doc = DocumentIndex(title=self.file.name, content=self.text, id=self.id)
+        #         document = {
+        #             "filename": self.file.name,
+        #             "type" : "file",
+        #             "terms": instance['terms'],
+        #             "id": self.id,
+        #         }
 
-            collection.insert_one(document)
-            doc = doc.save(using=es)
-
+            # doc = doc.save(using=es)
+        document = {}
+        instance = tokenize(self.text)
+        if self.url:
+            document = { 
+                "filename": self.url,
+                "type" : "url",
+                "terms": instance['terms'],
+                "id": self.id,
+            }
+        else:
+            document = {
+                "filename": self.file.name,
+                "type" : "file",
+                "terms": instance['terms'],
+                "id": self.id,
+            }
+        collection.insert_one(document)
 
 
     @property
