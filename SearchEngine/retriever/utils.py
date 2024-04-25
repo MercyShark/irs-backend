@@ -1,6 +1,7 @@
 import re
 from nltk.stem import PorterStemmer
 from collections import defaultdict
+import fitz 
 stemmer = PorterStemmer()
 # Preprocessing  the query
 def preprocess(query):
@@ -25,6 +26,68 @@ def highlight_query_in_text(input_string, word, tag_name="span", **kwargs):
     pattern = re.compile(r'\b' + re.escape(word) + r'\b', re.IGNORECASE)
     highlighted_string = pattern.sub("<{} {}>{}</{}>".format(tag_name, ' '.join([f'{key}="{value}"' for key, value in kwargs.items()]), word, tag_name), input_string)
     return highlighted_string
+
+# def highlight_query_in_text(input_string, word_list, color_array, tag_name="span",  **kwargs,):
+#     def clean_word(word):
+#         # Remove non-alphabetic characters
+#         return re.sub(r'[^a-zA-Z\s]', '', word)
+
+#     def create_pattern(word):
+#         # Compile a regular expression pattern to match the word as a whole word
+#         return re.compile(r'\b' + re.escape(word) + r'\b', re.IGNORECASE)
+
+#     def highlight_match(match):
+#         return "<{} {}>{}</{}>".format(tag_name, ' '.join([f'{key}="{value}"' for key, value in kwargs.items()]), match.group(0), tag_name)
+
+#     highlighted_string = input_string
+#     for word in word_list:
+#         word = word.lower()
+#         cleaned_word = clean_word(word)
+#         if cleaned_word:  # Check if the word is not empty after cleaning
+#             pattern = create_pattern(cleaned_word)
+#             highlighted_string = pattern.sub(highlight_match(), highlighted_string)
+#     return highlighted_string
+
+import re
+# import random
+
+def highlight_query_in_text(input_string, word_list, color_array, tag_name="span", **kwargs):
+    """
+    Highlights words from the word_list in the input_string using colors from the color_array.
+
+    Args:
+    - input_string (str): The input string to be highlighted.
+    - word_list (list): A list of words to highlight.
+    - color_array (list): An array of colors to use for highlighting.
+    - tag_name (str): The HTML tag name to use for highlighting (default is 'span').
+    - **kwargs: Additional keyword arguments for styling.
+
+    Returns:
+    - str: The input string with highlighted words.
+    """
+    # Iterate over each word and its corresponding color
+    highlighted_string = input_string
+    for word, color in zip(word_list ,color_array):
+        word = word.lower()
+        word = re.sub(r'[^a-zA-Z\s]', '', word)
+        pattern = re.compile(r'\b' + re.escape(word) + r'\b', re.IGNORECASE)
+        
+        # Create the opening tag with specified attributes (including color)
+        opening_tag = "<{} style='background-color:{}' {}>".format(tag_name, color, ' '.join([f'{key}="{value}"' for key, value in kwargs.items()]))
+        
+        # Create the closing tag
+        closing_tag = "</{}>".format(tag_name)
+        
+        # Modify the substitution pattern to include background color styling
+        highlighted_string = pattern.sub("{}{}{}".format(opening_tag, word, closing_tag), highlighted_string)
+    return highlighted_string
+
+# Example usage
+# input_string = "I have an Apple, a banana, and an orange."
+# word_list = ["apple", "banana", "orange"]
+# color_array = ["lightblue", "lightgreen", "lightpink"]
+# highlighted_text = highlight_query_in_text(input_string, word_list, color_array)
+# print(highlighted_text)
 
 def get_positions(docs, query):
     data = []
@@ -53,6 +116,7 @@ def get_positions(docs, query):
                 doc = {
                     "file_name": document['filename'],
                     "start_positions": start_positions,
+                    "query": query,
                     "type": document['type'],
                     "total_occurances": len(start_positions),
                     "id" : document['id'],
@@ -90,3 +154,62 @@ def stringMod(sentence,position,length):
         print(after)
     return ' '.join(li)
 
+
+
+
+def highlight_text_in_pdf(pdf_path, queries, colors, output_path):
+    # Open the PDF
+    doc = fitz.open(pdf_path)
+    
+    # Iterate over queries and colors
+    for query, color in zip(queries, colors):
+        # Search for the text to highlight
+        for page in doc:
+            # Split text into words
+            # Highlight exact matches
+            text_instances = page.search_for(query)
+            for inst in text_instances:
+                # Highlight the text with the specified color
+                highlight = page.add_highlight_annot(inst)
+                highlight.set_colors(stroke=fitz.pdfcolor[color])
+                highlight.update() 
+                # highlight = page.add_highlight_annot(inst)
+                # highlight.set_colors(stroke=color)
+                # highlight.update() 
+    # Save the modified PDF
+    doc.save(output_path)
+    doc.close()
+
+# # Example usage
+# pdf_path = "paper.pdf"
+# queries = ["The Content of PC is ABC", "combinational", " assembly language program to multiply"]
+# colors = [fitz.pdfcolor["pink"], fitz.pdfcolor["green"], fitz.pdfcolor['blue']]  # Specify colors in hexadecimal format (e.g., yellow, cyan)
+# output_path = "highlighted.pdf"
+
+# highlight_text(pdf_path, queries, colors, output_path)
+
+def merge_lists(lists):
+    data = []
+    file_dict = {}
+    
+    for input_list in lists:
+        for item in input_list:
+            file_id = item["id"]
+            if file_id not in file_dict:
+                file_dict[file_id] = {
+                    "id": file_id,
+                    "file_name": item["file_name"],
+                    "extension": item["extension"],
+                    "type": item["type"],
+                    "query": []
+                }
+            file_dict[file_id]["query"].append({
+                "query": item["query"],
+                "start_positions": item["start_positions"],
+                "total_occurances": item["total_occurances"]
+            })
+    
+    for file_id, file_data in file_dict.items():
+        data.append(file_data)
+    
+    return data

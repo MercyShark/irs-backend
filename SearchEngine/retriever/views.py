@@ -3,10 +3,14 @@ from django.shortcuts import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Documents
 from .forms import SearchForm
+from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.http import HttpResponseRedirect
 from .models import collection
-from .utils import get_positions, highlight_query_in_text
+from .utils import get_positions, highlight_query_in_text, merge_lists, highlight_text_in_pdf
+import os 
+import fitz
+
 
 
 @csrf_exempt
@@ -35,17 +39,45 @@ def searchView(request):
         form = SearchForm(request.POST)
         if form.is_valid():
             query = form.cleaned_data["query"]
-            data = get_positions(collection.find(), query)
+            query_list = query.split("|")
+            big_color_array = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan', 'magenta', 'brown', 'black', 'white', 'gray', 'lightblue', 'lightgreen', 'lightyellow', 'lightpurple', 'lightorange', 'lightpink', 'lightcyan', 'lightmagenta', 'lightbrown', 'lightblack', 'lightwhite', 'lightgray']
+            color_array = big_color_array[:len(query_list)]
+            print("color", color_array)
+            processed_list = []
+            for q in query_list:
+                processed_list.append(get_positions(collection.find(), q))
+
+            data = merge_lists(processed_list)
             for d in data:
                 d["org_document"] = Documents.objects.get(id=d["id"])
                 d["highlighted_content"] = highlight_query_in_text(
                     (d["org_document"].text).replace("\n", "<br>"),
-                    query,
+                    query_list,
+                    color_array=color_array,
                     tag_name="span",
-                    style="color:red;background-color:yellow;",
+                    # style="color:red;background-color:yellow;",
                 )
+                for q in d['query']:
+                    q['color'] = color_array[query_list.index(q['query'])]
+
+                # d['color'] = color_array[query_list.index(d['query'])]
+                if d.get("extension") == "pdf":
+                    pdf_path = d['org_document'].file.path
+                    highlight_text_in_pdf(pdf_path, query_list, color_array, pdf_path.replace(".pdf", "_highlighted.pdf"))
+                    # print("pdf_path:", pdf_path)
+                    # doc = fitz.open(pdf_path)
+                    # for page in doc:
+                    #     text_instances = page.search_for(query)
+                    #     for inst in text_instances:
+                    #         highlight = page.add_highlight_annot(inst)
+                    #         highlight.set_colors(stroke=fitz.pdfcolor['pink'])
+                    #         highlight.update() 
+                    # highlight_path = pdf_path.replace(".pdf", "_highlighted.pdf")
+                    # doc.save(highlight_path)
+                    # doc.close()
                 # d['highlighted_content'] = mark_safe((d['org_document'].text).replace(query, f"<span style='color:red;background-color:yellow;'>{query}</span>").replace("\n", "<br>").replace('"',''))
                 # d['highlighted_content'] = re.sub(r"\b" + query + r"\b", lambda x: f"<span style='color:red;background-color:yellow;'>{x.group()}</span>", d['org_document'].text, flags=re.IGNORECASE)
+
 
             pdf_found_count = 0
             text_found_count = 0
@@ -93,6 +125,9 @@ def deleteDocumentView(request):
         print(request.POST)
         Documents.objects.all().delete()
         collection.delete_many({})
+        dir_path = os.path.join((str(settings.MEDIA_ROOT)), 'documents')
+        for file in os.listdir(dir_path):
+            os.remove(os.path.join(dir_path, file))
         # es.delete_by_query(index="my_document_index", body={"query": {"match_all": {}}})
         return HttpResponseRedirect(path)
     return HttpResponse("Invalid Request")

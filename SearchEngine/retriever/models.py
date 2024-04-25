@@ -4,7 +4,6 @@ from .extractor import TextExtractor
 # from .search import DocumentIndex
 from .utils import tokenize
 import pymongo
-
 # es = Elasticsearch('http://localhost:9200')
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client['test2']
@@ -89,6 +88,12 @@ class Documents(models.Model):
         else:
             return "http://localhost:8000" + self.file.url
 
+    @property
+    def get_highlighted_pdf_url(self):
+        if self.get_extension == 'pdf':
+            return "http://localhost:8000" + self.file.url.replace('.pdf', '_highlighted.pdf')
+        else:
+            return None
     @property
     def get_extension(self):
         return self.file.name.split('.')[-1]

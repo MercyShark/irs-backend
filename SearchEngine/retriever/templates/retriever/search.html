@@ -68,12 +68,35 @@
 
                       <div class="pt-1 ps-2">
                         <span class="text-large">{{ document.org_document.title }}</span
-                        ><br /><span class="badge bg-secondary"
+                        ><br />
+                        {% for q in document.query %}
+                        <div class="d-flex" >
+                        <span class="badge bg-secondary " >{{ forloop.counter}}. Query : {{ q.query }} </span>
+                        &nbsp;
+                        <span class="badge bg-secondary ">Occurrences :  {{ q.total_occurances }} </span>
+                        <span class="badge bg-secondary ">Color :  {{ q.color }} </span>
+                        </div>
+                        {% endfor %}
+                        {% comment %} <span class="badge bg-secondary"
                           >{{ document.total_occurances}} occurrences</span
-                        >
+                        > {% endcomment %}
                       </div>
                     </div>
                     <div class="col-1 mt-2">
+                      {% if document.extension == 'pdf' %}
+                      <a
+                        href="{{ document.org_document.get_highlighted_pdf_url }}"
+                        class="btn btn-primary"
+                        target="_blank"
+                        >View</a>
+                      {% else %}
+                      {% if document.extension in "['png','jpg','jpeg']"  %}
+                      <a
+                      href="{{ document.org_document.get_url }}"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >View Image</a>
+                      {% endif %}
                       <button
                         type="button"
                         class="btn btn-secondary view_button"
@@ -84,6 +107,7 @@
                       >
                         View
                       </button>
+                      {% endif %}
                     </div>
                   </div>
                   {% endfor %}
