@@ -25,12 +25,37 @@
             </div>
             <div class="search-box p-4">
               <form method="post">
-                {% render_field form.query class="form-control search-bar" placeholder="Enter your query here :" type="text" %}
-
+                {% comment %} {% render_field form.query class="form-control search-bar" placeholder="Enter your query here :" type="text" %} {% endcomment %}
+                <input class="form-control search-bar" placeholder="Enter your query here :" type="text" id="query_input_field"/>
+                <select class="form-control" id="query_color_dropdown_field">
+                  <option value="" disabled selected>Select a color</option>
+                  <option class="red" value="red">Red</option>
+                  <option class="green" value="green" >Green</option>
+                  <option class="blue" value="blue">Blue</option>
+                  <option class="yellow" value="yellow">Yellow</option>
+                  <option class="orange" value="orange">Orange</option>
+                </select>
+                <button type="button" class="btn btn-primary" onclick="handleAddBtnClick()"> Add </button>
                 <div class="d-grid col-6 mx-auto mt-3">
                   <button type="submit" class="btn btn-success btn-block py-2">
                     Search
                   </button>
+                  <div id="query_history_list">
+                  {% for instance in instances %}
+                  <div class="form-check form-switch" id='instance_{{ instance.id }}' style="background-color:{{ instance.color }}">
+                    <span> {{ instance.query }} </span>
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="flexSwitchCheckDefault"
+                      {% if instance.checked %}checked{% endif %}
+                      onchange="handleQueryCheckInput({{ instance.id }})"
+                    />
+                    <button type="button" class="btn btn-primary" onclick="handleQueryDeleteInput({{ instance.id }})">X</button>
+                  </div>
+                  {% endfor %}
+                </div>
+                  <button type="button" class="btn btn-primary" onclick="postDataToDjango()">Advanced Search</button>
                 </div>
               </form>
             </div>
@@ -159,8 +184,72 @@
         </div>
       </div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
+      function handleAddBtnClick() {
+        var query_obj = document.getElementById("query_input_field");
+        var color_obj = document.getElementById("query_color_dropdown_field");
+        var query = query_obj.value;
+        var color = color_obj.value;
+        
+        if (query === "" || color === "") {
+          alert("Please enter a query and select a color");
+          return;
+        }
+
+        query_obj.value = "";
+        color_obj.value = "";
+        console.log(query,color)
+
+        axios.post('http://127.0.0.1:8000/add-query-history-api/',
+        {
+          "query": query,
+          "color": color,
+          "checked": true
+        }).then((response) => {
+          console.log("it works post data 1 ")
+          let data = response.data.data
+          console.log(data)
+          {% comment %} console.log("id" , data.id) {% endcomment %}
+          var query_history_list = document.getElementById("query_history_list")
+          var new_instance = document.createElement("div")
+          console.log("it works post data 2 ")
+          new_instance.class = "form-check form-switch"
+          new_instance.style = `background-color: ${data.color}`
+          new_instance.id = "instance_" + data.id
+          new_instance.innerHTML = "<span>" + data.query + "</span>" + "<input class='form-check-input' type='checkbox' id='flexSwitchCheckDefault' checked onchange='handleQueryCheckInput(" + data.id + ")'/>" + "<button class='btn btn-primary' onclick='handleQueryDeleteInput(" + data.id + ")'>X</button>"
+          console.log("it works post data 3 ")
+          query_history_list.appendChild(new_instance)
+          console.log(new_instance)
+        }).catch(() => {
+          console.log('axios failed')
+        })
+      }
+
+      function handleQueryCheckInput(instance_id) {
+        axios.patch('http://127.0.0.1:8000/delete-query-history-api/',{
+          "query_id": instance_id
+        }).then((data) => {
+          console.log('axios works')
+          console.log(data)
+        }).catch(() => {
+          console.log('axios failed')
+        })
+      }
+
+      function handleQueryDeleteInput(instance_id) {
+        axios.delete('http://127.0.0.1:8000/delete-query-history-api/',{
+          data : {
+            "query_id": instance_id
+          }
+        }).then((response) => {
+          document.getElementById("instance_" + instance_id).remove()
+        }).catch(() => {
+          console.log('axios failed')
+        })
+      }
+
+      
       function openModalWithData(data) {
         // Get modal body element
         var modalBody = document.querySelector("#exampleModal .modal-body");
@@ -196,6 +285,26 @@
           openModalWithData(dataToSend);
         });
       });
+
+    function postDataToDjango() {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/handle-post/', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+              var response = JSON.parse(xhr.responseText);
+              console.log(response); // Display the response from Django
+              // You can further process the response here
+          }
+      };
+      var postData = JSON.stringify({
+          query: 'the',
+          color: 'blue',
+          checked: true
+      });
+      xhr.send(postData);
+  }
+
     </script>
   </body>
 </html>

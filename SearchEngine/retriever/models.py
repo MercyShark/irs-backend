@@ -126,3 +126,20 @@ class Documents(models.Model):
     
 def find_by_id(id):
     return Documents.objects.get(id=id)
+
+
+
+
+
+
+
+
+class QueryHistory(models.Model):
+    query = models.CharField(max_length=255)
+    color = models.CharField(max_length=255)
+    checked = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.query

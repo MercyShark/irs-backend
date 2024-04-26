@@ -6,11 +6,10 @@ from .forms import SearchForm
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.http import HttpResponseRedirect
-from .models import collection
+from .models import collection, QueryHistory
 from .utils import get_positions, highlight_query_in_text, merge_lists, highlight_text_in_pdf
 import os 
 import fitz
-
 
 
 @csrf_exempt
@@ -37,6 +36,7 @@ def upload_files(request):
 def searchView(request):
     if request.method == "POST":
         form = SearchForm(request.POST)
+        instances = QueryHistory.objects.all()
         if form.is_valid():
             query = form.cleaned_data["query"]
             query_list = query.split("|")
@@ -99,6 +99,7 @@ def searchView(request):
 
             context_data = {
                 "form": form,
+                "instances": instances,
                 "results": {
                     "total_documents_found": len(data),
                     "pdf_found": pdf_found_count,
@@ -115,7 +116,8 @@ def searchView(request):
             return HttpResponse("Invalid form")
     if request.method == "GET":
         form = SearchForm()
-    return render(request, "retriever/search.html", {"form": form})
+        instances = QueryHistory.objects.order_by('id')
+    return render(request, "retriever/search.html", {"form": form, "instances": instances})
 
 
 @csrf_exempt
@@ -145,3 +147,76 @@ def ViewDocuments(request):
         "url_count": Documents.count_url(Documents),
     }
     return render(request, "retriever/all_documents.html", context=context_data)
+
+
+from django.http import JsonResponse
+import json
+
+
+@csrf_exempt 
+def addQueryHistory(request):
+    if request.method == 'POST':
+        # Get the POST data
+        post_data = json.loads(request.body)
+        query = post_data.get('query', '')
+        color = post_data.get('color', '')
+        checked = post_data.get('checked', False)
+        instance = QueryHistory.objects.create(query=query, color=color, checked=checked)
+        response_data = { 
+            'message': 'Query history added successfully',
+            'data' : {
+            'id' : instance.id,
+            'query': instance.query,
+            'color': instance.color,
+            'checked': instance.checked,
+            }
+        }
+        return JsonResponse(response_data)
+    else:
+        # Handle other HTTP methods if needed
+        return JsonResponse({'error': 'Only POST requests are allowed'})
+    
+
+
+@csrf_exempt
+def deleteQueryHistory(request):
+    print("request", request.body)
+    body = json.loads(request.body)
+    print("body", body)
+    query_id = body.get('query_id', '')
+    try:
+        instance = QueryHistory.objects.get(id=query_id)
+    except QueryHistory.DoesNotExist:
+        return JsonResponse({'error': 'Given query id does not exist in the database'},status = 404 )
+    
+    if request.method == 'DELETE':
+        instance.delete()
+        response_data = { 
+            'message': 'Query history deleted successfully',
+            'data' : {
+                'id' : query_id,
+                'query': instance.query,
+                'color': instance.color,
+                'checked': instance.checked,
+            
+            }
+        }
+        return JsonResponse(response_data)
+    
+    if request.method == 'PATCH':
+        instance.checked = not instance.checked
+        instance.save()
+        response_data = { 
+            'message': 'Query history updated successfully',
+            'data' : {
+                'id' : query_id,
+                'query': instance.query,
+                'color': instance.color,
+                'checked': instance.checked,
+            
+            }
+        }
+        return JsonResponse(response_data)
+    else:
+        # Handle other HTTP methods if needed
+        return JsonResponse({'error': 'Only POST requests are allowed'})

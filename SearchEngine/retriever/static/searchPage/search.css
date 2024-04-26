@@ -48,3 +48,14 @@ body {
   border-style: ridge;
   border-radius: 10px;
 }
+
+
+
+select.form-control option {
+  padding: 5px;
+}
+.red { background-color: #FF0000; }
+.green { background-color: #00FF00; }
+.blue { background-color: #0000FF; }
+.yellow { background-color: #FFFF00; }
+.orange { background-color: #FFA500; }
