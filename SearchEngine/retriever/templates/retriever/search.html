@@ -48,6 +48,8 @@
                 {% for document in results.data %}
                 <li class="file-list-item listItemBorder my-2">
                   <div class="d-flex justify-content-between pe-4 ps-2 py-2">
+                    <div class="row col-md-12">
+                    <div class="d-flex justify-content-between">
                     <div class="d-flex">
                       <div
                         class="d-flex align-items-center justify-content-center pe-3 mt-2"
@@ -65,21 +67,9 @@
                       {% else %}
                       <img src="{% static 'icons/link.png' %}" class="mt-1"  alt="My image" />
                       {% endif %}
-
-                      <div class="pt-1 ps-2">
-                        <span class="text-large">{{ document.org_document.title }}</span
-                        ><br />
-                        {% for q in document.query %}
-                        <div class="d-flex" >
-                        <span class="badge bg-secondary " >{{ forloop.counter}}. Query : {{ q.query }} </span>
-                        &nbsp;
-                        <span class="badge bg-secondary ">Occurrences :  {{ q.total_occurances }} </span>
-                        <span class="badge bg-secondary ">Color :  {{ q.color }} </span>
-                        </div>
-                        {% endfor %}
-                        {% comment %} <span class="badge bg-secondary"
-                          >{{ document.total_occurances}} occurrences</span
-                        > {% endcomment %}
+                      <div class="pt-2 ps-2">
+                      <span class="text-large">{{ document.org_document.title }}</span
+                        >
                       </div>
                     </div>
                     <div class="col-1 mt-2">
@@ -109,6 +99,24 @@
                       </button>
                       {% endif %}
                     </div>
+                  </div>
+                    <div class="pt-1 ps-2 d-flex flex-wrap justify-content-between col-md-12 ms-3 mt-2">
+                      <!-- <br /> -->
+                      {% for q in document.query %}
+                      <div class="d-flex m-1" >
+                        <span class="badge bg-secondary " style="background-color: {{ q.color }} !important;">{{ forloop.counter}}. Query : {{ q.query }}  Occurrences :  {{ q.total_occurances }}  Color :  {{ q.color }} </span>
+
+                      <!-- <span class="badge bg-secondary " >{{ forloop.counter}}. Query : {{ q.query }} </span>
+                      &nbsp;
+                      <span class="badge bg-secondary ">Occurrences :  {{ q.total_occurances }} </span>
+                      <span class="badge bg-secondary ">Color :  {{ q.color }} </span> -->
+                      </div>
+                      {% endfor %}
+                      {% comment %} <span class="badge bg-secondary"
+                        >{{ document.total_occurances}} occurrences</span
+                      > {% endcomment %}
+                    </div>
+                  </div>
                   </div>
                   {% endfor %}
                 </li>
