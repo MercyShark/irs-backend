@@ -17,8 +17,8 @@
   <body>
     <div class="container">
       <div class="row">
-        <div class="col-md-6 offset-md-3">
-          <div class="search-container mx-auto my-5 p-4">
+        <div class="mx-auto">
+          <div class="search-container mx-auto my-5 px-5">
             <div class="header text-center">
               <h2>Information Retriever System</h2>
               <p>Searching in {{ results.total_documents}} files and links.</p>
@@ -26,36 +26,52 @@
             <div class="search-box p-4">
               <form method="post">
                 {% comment %} {% render_field form.query class="form-control search-bar" placeholder="Enter your query here :" type="text" %} {% endcomment %}
-                <input class="form-control search-bar" placeholder="Enter your query here :" type="text" id="query_input_field"/>
-                <select class="form-control" id="query_color_dropdown_field">
-                  <option value="" disabled selected>Select a color</option>
-                  <option class="red" value="red">Red</option>
-                  <option class="green" value="green" >Green</option>
-                  <option class="blue" value="blue">Blue</option>
-                  <option class="yellow" value="yellow">Yellow</option>
-                  <option class="orange" value="orange">Orange</option>
-                </select>
-                <button type="button" class="btn btn-primary" onclick="handleAddBtnClick()"> Add </button>
-                <div class="d-grid col-6 mx-auto mt-3">
-                  <button type="submit" class="btn btn-success btn-block py-2">
-                    Search
-                  </button>
-                  <div id="query_history_list">
+                <div class="d-flex">
+                  <input class="form-control search-bar" placeholder="Enter your query here :" type="text" id="query_input_field"/>
+                  <div class="d-flex w-50 mx-1">
+                    <select class="form-control form-select" id="query_color_dropdown_field">
+                      <option value="" disabled selected>Color: </option>
+                      <option class="red" value="red">Red</option>
+                      <option class="green" value="green" >Green</option>
+                      <option class="blue" value="blue">Blue</option>
+                      <option class="yellow" value="yellow">Yellow</option>
+                      <option class="orange" value="orange">Orange</option>
+                    </select>
+                    <button type="button" class="btn btn-primary ms-1" onclick="handleAddBtnClick()"> Add </button>
+                  </div>
+                </div>
+                <div class="d-flex flex-column col-8 mx-auto mt-3">
+                  <div class="d-flex flex-column w-100" id="query_history_list">
                   {% for instance in instances %}
-                  <div class="form-check form-switch" id='instance_{{ instance.id }}' style="background-color:{{ instance.color }}">
-                    <span> {{ instance.query }} </span>
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      id="flexSwitchCheckDefault"
-                      {% if instance.checked %}checked{% endif %}
-                      onchange="handleQueryCheckInput({{ instance.id }})"
-                    />
-                    <button type="button" class="btn btn-primary" onclick="handleQueryDeleteInput({{ instance.id }})">X</button>
+                  <div class="d-flex justify-content-between border rounded border-3 p-1 m-1" id='instance_{{ instance.id }}' >
+                    <div class="d-flex">
+                      <div class="form-check form-switch " style="margin-top: 3px;">
+                        <input class="form-check-input" type="checkbox" value="" id="flexSwitchCheckDefault"  
+                        {% if instance.checked %}checked{% endif %}
+                        onchange="handleQueryCheckInput({{ instance.id }})">
+                      </div>
+                      <span> {{ instance.query }} </span>
+                    </div>
+                    <div class="d-flex ms-3">
+                    <div class="d-flex">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="{{ instance.color }}" class="bi bi-circle-fill" viewBox="0 0 16 16">
+                        <circle cx="8" cy="8" r="8"/>
+                      </svg>
+                    </div>
+                      <button type="button" class="btn d-flex" onclick="handleQueryDeleteInput({{ instance.id }})">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                          <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                        </svg></button>
+                      </div>
                   </div>
                   {% endfor %}
                 </div>
-                  <button type="button" class="btn btn-primary" onclick="postDataToDjango()">Advanced Search</button>
+                <div class="d-flex w-100 justify-content-center">
+                  <button type="submit" class="btn btn-success btn-block py-2 w-50">
+                    Search
+                  </button>
+                </div>
                 </div>
               </form>
             </div>
@@ -207,18 +223,31 @@
           "color": color,
           "checked": true
         }).then((response) => {
-          console.log("it works post data 1 ")
           let data = response.data.data
-          console.log(data)
-          {% comment %} console.log("id" , data.id) {% endcomment %}
           var query_history_list = document.getElementById("query_history_list")
           var new_instance = document.createElement("div")
-          console.log("it works post data 2 ")
-          new_instance.class = "form-check form-switch"
-          new_instance.style = `background-color: ${data.color}`
+          new_instance.className = "d-flex justify-content-between border rounded border-3 p-1 m-1"
           new_instance.id = "instance_" + data.id
-          new_instance.innerHTML = "<span>" + data.query + "</span>" + "<input class='form-check-input' type='checkbox' id='flexSwitchCheckDefault' checked onchange='handleQueryCheckInput(" + data.id + ")'/>" + "<button class='btn btn-primary' onclick='handleQueryDeleteInput(" + data.id + ")'>X</button>"
-          console.log("it works post data 3 ")
+          new_instance.innerHTML = `<div class="d-flex">
+                      <div class="form-check form-switch " style="margin-top: 3px;">
+                        <input class="form-check-input" type="checkbox" value="" id="flexSwitchCheckDefault"  
+                        checked=${data.checked}
+                        onchange="handleQueryCheckInput(${ data.id })">
+                      </div>
+                      <span> ${ data.query } </span>
+                    </div>
+                    <div class="d-flex ms-3">
+                    <div class="d-flex">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="${ data.color }" class="bi bi-circle-fill" viewBox="0 0 16 16">
+                        <circle cx="8" cy="8" r="8"/>
+                      </svg>
+                    </div>
+                      <button type="button" class="btn d-flex" onclick="handleQueryDeleteInput(${ data.id })">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                          <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                        </svg></button>
+                      </div>`
           query_history_list.appendChild(new_instance)
           console.log(new_instance)
         }).catch(() => {
@@ -285,26 +314,6 @@
           openModalWithData(dataToSend);
         });
       });
-
-    function postDataToDjango() {
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', '/handle-post/', true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.onreadystatechange = function () {
-          if (xhr.readyState === 4 && xhr.status === 200) {
-              var response = JSON.parse(xhr.responseText);
-              console.log(response); // Display the response from Django
-              // You can further process the response here
-          }
-      };
-      var postData = JSON.stringify({
-          query: 'the',
-          color: 'blue',
-          checked: true
-      });
-      xhr.send(postData);
-  }
-
     </script>
   </body>
 </html>
