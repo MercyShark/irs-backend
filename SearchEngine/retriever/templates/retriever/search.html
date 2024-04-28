@@ -83,7 +83,6 @@
               <span class="badge bg-info">{{ results.text_found }} text found</span>
               <span class="badge bg-info">{{ results.html_found }} html found</span>
               <span class="badge bg-info">{{ results.url_found }} link found</span>
-
               {% endif %}
               <ul class="file-list mt-3" id="fileList">
                 {% for document in results.data %}
@@ -121,20 +120,21 @@
                         target="_blank"
                         >View</a>
                       {% else %}
-                      {% if document.extension in "['png','jpg','jpeg']"  %}
-                      <a
+                      
+                      {% comment %} <a
                       href="{{ document.org_document.get_url }}"
                       class="btn btn-primary"
                       target="_blank"
-                      >View Image</a>
-                      {% endif %}
+                      >View Image</a> {% endcomment %}
                       <button
                         type="button"
                         class="btn btn-secondary view_button"
                         data-bs-toggle="modal"
                         data-bs-target="#exampleModal"
                         data-modal-data="{{ document.highlighted_content }}"
-                        data-modal-title="{{ document.title }}"
+                        data-modal-title="{{ document.org_document.title }}"
+                        data-model-extension="{{ document.extension }}"
+                        data-image-url="{{ document.org_document.get_url }}"
                       >
                         View
                       </button>
@@ -145,7 +145,7 @@
                       <!-- <br /> -->
                       {% for q in document.query %}
                       <div class="d-flex m-1" >
-                        <span class="badge bg-secondary " style="background-color: {{ q.color }} !important;">{{ forloop.counter}}. Query : {{ q.query }}  Occurrences :  {{ q.total_occurances }}  Color :  {{ q.color }} </span>
+                        <span class="badge bg-secondary " style="background-color: {{ q.color }} !important;" data-bs-toggle="tooltip" data-bs-placement="top" title='{{q.start_positions}}'>{{ forloop.counter}}. Query : {{ q.query }}  Occurrences :  {{ q.total_occurances }}  Color :  {{ q.color }} </span>
 
                       <!-- <span class="badge bg-secondary " >{{ forloop.counter}}. Query : {{ q.query }} </span>
                       &nbsp;
@@ -284,13 +284,20 @@
         var modalBody = document.querySelector("#exampleModal .modal-body");
         var modalTitle = document.querySelector("#exampleModal .modal-title");
 
+        console.log("data", data)
         // Set modal title
         modalTitle.innerHTML = "<h5>" + data.modalTitle + "</h5>";
-        // Clear existing content
         modalBody.innerHTML = "";
+        if(data.extension == 'png' || data.extension == 'jpg' || data.extension == 'jpeg'){
+          console.log("image_url", data.image_url)
+          modalBody.innerHTML += "<img src=" + data.image_url + " alt='My image' />";
+        }
+        {% comment %} modalBody.innerHTML = ""; {% endcomment %}
+        
+        // Clear existing content
 
         // Populate modal body with data
-        modalBody.innerHTML = "<p>" + data.modalData + "</p>";
+        modalBody.innerHTML += "<p>" + data.modalData + "</p>";
 
         // Open the modal
         {% comment %} var myModal = new bootstrap.Modal(
@@ -305,11 +312,16 @@
           // Get data attribute value
           var modalData = this.getAttribute("data-modal-data");
           var modalTitle = this.getAttribute("data-modal-title");
+          var image_url = this.getAttribute("data-image-url");
+          var extension = this.getAttribute("data-model-extension");
           dataToSend = {
             modalData: modalData,
             modalTitle: modalTitle,
+            image_url: image_url,
+            extension: extension
           };
 
+          console.log(dataToSend)
           // Open the modal with data
           openModalWithData(dataToSend);
         });

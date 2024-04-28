@@ -81,7 +81,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'test_db_for_search_engine_ps3',
         'USER': 'postgres',
-        'PASSWORD': 'noman',
+        'PASSWORD': 'root',
         'HOST': 'localhost',
         'PORT': '5432',
     }
